@@ -6,45 +6,73 @@ orbs:
   aws-cli: circleci/aws-cli@3.1.1
   # different jobs are calles later in the workflows sections
 jobs:
-  # First of all build Front end alone firest to check if All proccess run correctly
-  frontend:
-    working_directory: ~/my-deploying-Full-Stack-App/udagram-frontend
-    executor: node/default
+  build:
+    docker:
+      # the base image can run most needed actions with orbs
+      - image: "cimg/node:14.15"
     steps:
-      - checkout:
-          path: ~/my-deploying-Full-Stack-App
-      - node/install-packages:
-          app-dir: ~/my-deploying-Full-Stack-App/udagram-frontend
+      # install node and checkout code
+      - node/install:
+          node-version: "14.15"
+      - checkout
+      # Use root level package.json to install dependencies in the frontend app
       - run:
-          name: Build Frontend
-          command: npm run build
-      - aws-cli/install
+          name: Install Front-End Dependencies
+          command: |
+            echo "NODE --version" 
+            echo $(node --version)
+            echo "NPM --version" 
+            echo $(npm --version)
+            npm run frontend:install
+      # TODO: Install dependencies in the the backend API
       - run:
-          name: Deploy Frontend
-          command: aws s3 cp --recursive --acl public-read ./www $S3_BUCKET_FRONTEND
-  backend:
-    working_directory: ~/my-deploying-Full-Stack-App/udagram-api
-    executor: node/default
+          name: Install API Dependencies
+          command: |
+            echo "TODO: Install dependencies in the the backend API  "
+      # TODO: Lint the frontend
+      - run:
+          name: Front-End Lint
+          command: |
+            echo "TODO: Lint the frontend"
+      # TODO: Build the frontend app
+      - run:
+          name: Front-End Build
+          command: |
+            echo "TODO: Build the frontend app"
+      # TODO: Build the backend API
+      - run:
+          name: API Build
+          command: |
+            echo "TODO: Build the backend API"
+  # deploy step will run only after manual approval
+  deploy:
+    docker:
+      - image: "cimg/base:stable"
+      # more setup needed for aws, node, elastic beanstalk
     steps:
-      - checkout:
-          path: ~/my-deploying-Full-Stack-App
-      - node/install-packages:
-          app-dir: ~/my-deploying-Full-Stack-App/udagram-api
+      - node/install:
+          node-version: "14.15"
+      - eb/setup
+      - aws-cli/setup
+      - checkout
       - run:
-          name: Build and Archive backend
-          command: |-
-            npm run build
-            printenv > www/.env
-            npm run archive
-      - aws-cli/install
-      - run:
-          name: Deploy backend
-          command: |-
-            aws s3 cp ./www/Archive.zip $S3_BUCKET_SERVER
-            aws elasticbeanstalk create-application-version --application-name $EB_APP --version-label <<pipeline.git.revision>> --source-bundle S3Bucket="$EB_BUCKET",S3Key="Archive.zip"
-            aws elasticbeanstalk update-environment --application-name $EB_APP --environment-name $EB_ENV --version-label <<pipeline.git.revision>>
+          name: Deploy App
+          # TODO: Install, build, deploy in both apps
+          command: |
+            echo "# TODO: Install, build, deploy in both apps"
+
 workflows:
-  build_and_deploy:
+  udagram:
     jobs:
-      - frontend
-      - backend
+      - build
+      - hold:
+          filters:
+            branches:
+              only:
+                - master
+          type: approval
+          requires:
+            - build
+      - deploy:
+          requires:
+            - hold
