@@ -62,7 +62,7 @@ jobs:
             echo "# TODO: Install, build, deploy in both apps"
 
 workflows:
-  udagram:
+  my-deploying-Full-Stack-App:
     jobs:
       - build
       - hold:
