@@ -27,7 +27,7 @@ jobs:
       # TODO: Lint the frontend
       - run:
           name: Front-End Lint
-          command: ng lint
+          command: npm run lint
       # TODO: Build the frontend app
       - run:
           name: Front-End Build
